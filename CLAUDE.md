@@ -88,10 +88,13 @@ Standard request flow: **router → service → repository → model**. Each lay
 - `embeddings.py` — `get_embeddings()` returns a cached local `FastEmbedEmbeddings` model (no API key required).
 - `vector_store.py` — per-plan FAISS indexes on disk under `FAISS_INDEX_DIR/plan_{id}/`. Directory-per-plan isolation guarantees one plan's documents are never retrieved for another plan. Use `add_documents(plan_id, docs)` and `similarity_search(plan_id, query, k=4)`.
 - `prompts.py` — `ChatPromptTemplate` definitions for AI features, kept separate from service logic.
+- `checkpointer.py` — `get_checkpointer()` returns a cached `PostgresSaver` (lazy import; tests override with `InMemorySaver`). Backs LangGraph thread-scoped state for both the RAG chat graph and the planning agent.
+- `rag_graph.py` — Story 2's two-node LangGraph (retrieve → generate) for per-plan document chat.
+- `planning_tools.py` / `planning_agent.py` — Story 3's planning agent. `build_planning_tools(plan_id, goal, budget_hours, result)` returns four `@tool`s (`retrieve_knowledge`, `generate_tasks_for_subtopic`, `validate_constraints`, `submit_plan`) bound to one request via closures; `submit_plan` writes the final plan into the mutable `result` dict for the service to read back. `validate_constraints`/`compute_budget_hours` are pure (no LLM) and reused by the service for defense-in-depth re-validation. `build_planning_agent(...)` wraps `deepagents.create_deep_agent` with those tools, the system prompt, the chat model, and the checkpointer. The agent's built-in `DeepAgentState.files` scratchpad (checkpointed per-thread) holds intermediate work; per-request thread isolation uses `thread_id = f"plan_{plan_id}:gen:{uuid4()}"`. (`deepagents==0.0.5` does not expose the `CompositeBackend`/`StoreBackend` API; cross-run `/memories/` long-term store is deferred until the dep supports it.)
 
 ### Configuration
 
-All config lives in `backend/app/core/config.py` (`Settings`, loaded from env / `.env`). Key AI-related settings: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `LLM_TEMPERATURE`, `EMBEDDING_MODEL`, `FAISS_INDEX_DIR`. `ANTHROPIC_API_KEY` is passed through from the host environment in `docker-compose.yml`.
+All config lives in `backend/app/core/config.py` (`Settings`, loaded from env / `.env`). Key AI-related settings: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `LLM_TEMPERATURE`, `EMBEDDING_MODEL`, `FAISS_INDEX_DIR`, `RAG_TOP_K`, `RAG_SCORE_THRESHOLD`. Planning-agent settings: `DEFAULT_PLAN_WEEKS` (budget horizon when a plan has no `target_date`), `PLAN_HOURS_TOLERANCE`, `AGENT_MAX_SUBTOPICS`, `AGENT_RECURSION_LIMIT`. `ANTHROPIC_API_KEY` is passed through from the host environment in `docker-compose.yml`.
 
 ### Auth
 

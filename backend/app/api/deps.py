@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from ..core.database import get_db
 from ..services.chat_service import ChatService
 from ..services.document_service import DocumentService
+from ..services.planning_agent_service import PlanningAgentService
 from ..services.plan_service import PlanService
 from ..services.task_generation_service import TaskGenerationService
 from ..services.task_service import TaskService
@@ -39,3 +40,10 @@ def get_chat_service(
     checkpointer: BaseCheckpointSaver = Depends(get_checkpointer),
 ) -> ChatService:
     return ChatService(db, checkpointer)
+
+
+def get_planning_agent_service(
+    db: Session = Depends(get_db),
+    checkpointer: BaseCheckpointSaver = Depends(get_checkpointer),
+) -> PlanningAgentService:
+    return PlanningAgentService(db, checkpointer)
