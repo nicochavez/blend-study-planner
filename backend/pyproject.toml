@@ -12,6 +12,15 @@ dependencies = [
     "pydantic-settings==2.7.0",
     "bcrypt==4.2.0",
     "PyJWT==2.9.0",
+    "langchain-anthropic>=0.3.22",
+    "langgraph>=1.0.1",
+    "langchain-core>=0.3.86",
+    "langchain-community>=0.3.27",
+    "langchain-text-splitters>=0.3.11",
+    "faiss-cpu>=1.14.3",
+    "fastembed>=0.8.0",
+    "pypdf>=6.13.2",
+    "python-multipart>=0.0.32",
 ]
 
 [dependency-groups]

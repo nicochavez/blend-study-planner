@@ -5,6 +5,7 @@ frontend/dist/
 # Backend
 backend/.venv/
 backend/test.db
+backend/data/
 __pycache__/
 **/__pycache__/
 **/*.pyc
@@ -13,3 +14,4 @@ __pycache__/
 # Env
 .env
 *.env
+.claude/*
