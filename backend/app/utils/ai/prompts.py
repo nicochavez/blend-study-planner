@@ -2,6 +2,18 @@
 
 from langchain_core.prompts import ChatPromptTemplate
 
+RAG_SYSTEM_PROMPT = (
+    "You are a study assistant that answers questions about a user's uploaded "
+    "study documents. Use ONLY the information in the context below to answer. "
+    "If the context is empty or does not contain the answer, say you don't have "
+    "enough information in the uploaded documents to answer that — do not use "
+    "outside knowledge and do not guess. You may use the earlier conversation for "
+    "follow-up questions, but ground every factual claim in the context.\n\n"
+    "Context:\n{context}"
+)
+
+NO_CONTEXT_PLACEHOLDER = "(no relevant content was found in the uploaded documents)"
+
 TASK_GENERATION_SYSTEM_PROMPT = (
     "You are an expert study coach. Given a study goal, a weekly time budget, "
     "and an optional due date, break the goal into a sequence of concrete, "

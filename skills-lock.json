@@ -1,11 +1,23 @@
 {
   "version": 1,
   "skills": {
+    "deep-agents-memory": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "skillPath": "config/skills/deep-agents-memory/SKILL.md",
+      "computedHash": "54e4fd1e876f5e13bee1b52812a84befe00e8336c19d32766557fcb84c5ecf49"
+    },
     "fastapi": {
       "source": "fastapi/fastapi",
       "sourceType": "github",
       "skillPath": "fastapi/.agents/skills/fastapi/SKILL.md",
       "computedHash": "ee23d5285caf055cf164ff45dd34888d381143564666baacab8aa786f22e413a"
+    },
+    "langchain-rag": {
+      "source": "langchain-ai/langchain-skills",
+      "sourceType": "github",
+      "skillPath": "config/skills/langchain-rag/SKILL.md",
+      "computedHash": "53fa807b2094c4ee9136ff23a9330321c1a22959870e4a1f7bd53b753b623f94"
     },
     "langgraph-docs": {
       "source": "langchain-ai/deepagents",
