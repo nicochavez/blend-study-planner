@@ -1,4 +1,5 @@
 import {
+  Alert,
   Badge,
   Button,
   Group,
@@ -9,11 +10,13 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
+  IconAlertCircle,
   IconArrowLeft,
   IconCalendar,
   IconCircleCheck,
   IconClock,
   IconPlus,
+  IconSparkles,
   IconTarget,
 } from "@tabler/icons-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -60,6 +63,14 @@ export default function PlanDetail() {
       taskId: number;
       completed: boolean;
     }) => api.toggleTask(id, taskId, completed),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tasks", id] });
+      qc.invalidateQueries({ queryKey: ["taskStats"] });
+    },
+  });
+
+  const generateTasks = useMutation({
+    mutationFn: () => api.generateTasks(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tasks", id] });
       qc.invalidateQueries({ queryKey: ["taskStats"] });
@@ -167,6 +178,16 @@ export default function PlanDetail() {
                 </Badge>
               )}
               <Button
+                leftSection={<IconSparkles size={13} />}
+                color="cyan"
+                size="xs"
+                variant="light"
+                loading={generateTasks.isPending}
+                onClick={() => generateTasks.mutate()}
+              >
+                Generate with AI
+              </Button>
+              <Button
                 leftSection={<IconPlus size={13} />}
                 color="cyan"
                 size="xs"
@@ -177,6 +198,19 @@ export default function PlanDetail() {
               </Button>
             </Group>
           </Group>
+
+          {generateTasks.isError && (
+            <Alert
+              icon={<IconAlertCircle size={16} />}
+              color="red"
+              variant="light"
+              mb="md"
+              withCloseButton
+              onClose={() => generateTasks.reset()}
+            >
+              Couldn't generate tasks right now. Please try again.
+            </Alert>
+          )}
 
           {isComplete && (
             <div className={styles.completionBanner}>
@@ -202,6 +236,16 @@ export default function PlanDetail() {
               <Text className={styles.emptyText}>
                 No tasks yet. Break your goal into actionable steps.
               </Text>
+              <Button
+                leftSection={<IconSparkles size={14} />}
+                color="cyan"
+                size="xs"
+                variant="light"
+                loading={generateTasks.isPending}
+                onClick={() => generateTasks.mutate()}
+              >
+                Generate tasks with AI
+              </Button>
             </div>
           ) : (
             <div className={styles.taskList}>

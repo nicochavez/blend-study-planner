@@ -3,8 +3,13 @@ from fastapi import APIRouter, Depends
 from ...schemas.study_plan import StudyPlanCreate, StudyPlanRead, StudyPlanUpdate
 from ...schemas.study_task import StudyTaskCreate, StudyTaskRead, StudyTaskUpdate
 from ...services.plan_service import PlanService
+from ...services.task_generation_service import TaskGenerationService
 from ...services.task_service import TaskService
-from ..deps import get_plan_service, get_task_service
+from ..deps import (
+    get_plan_service,
+    get_task_generation_service,
+    get_task_service,
+)
 
 router = APIRouter(prefix="/plans", tags=["plans"])
 
@@ -38,6 +43,18 @@ def create_task(
 @router.get("/{plan_id}/tasks", response_model=list[StudyTaskRead])
 def get_tasks(plan_id: int, svc: TaskService = Depends(get_task_service)):
     return svc.get_tasks_by_plan(plan_id)
+
+
+@router.post(
+    "/{plan_id}/generate-tasks",
+    response_model=list[StudyTaskRead],
+    status_code=201,
+)
+def generate_tasks(
+    plan_id: int,
+    svc: TaskGenerationService = Depends(get_task_generation_service),
+):
+    return svc.generate_tasks(plan_id)
 
 
 @router.patch("/{plan_id}/tasks/{task_id}", response_model=StudyTaskRead)
