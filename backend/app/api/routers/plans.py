@@ -5,6 +5,7 @@ from ...schemas.study_plan import StudyPlanCreate, StudyPlanRead, StudyPlanUpdat
 from ...schemas.study_task import StudyTaskCreate, StudyTaskRead, StudyTaskUpdate
 from ...services.chat_service import ChatService
 from ...services.document_service import DocumentService
+from ...services.planning_agent_service import PlanningAgentService
 from ...services.plan_service import PlanService
 from ...services.task_generation_service import TaskGenerationService
 from ...services.task_service import TaskService
@@ -12,6 +13,7 @@ from ..deps import (
     get_chat_service,
     get_document_service,
     get_plan_service,
+    get_planning_agent_service,
     get_task_generation_service,
     get_task_service,
 )
@@ -60,6 +62,18 @@ def generate_tasks(
     svc: TaskGenerationService = Depends(get_task_generation_service),
 ):
     return svc.generate_tasks(plan_id)
+
+
+@router.post(
+    "/{plan_id}/agent-plan",
+    response_model=list[StudyTaskRead],
+    status_code=201,
+)
+def agent_plan(
+    plan_id: int,
+    svc: PlanningAgentService = Depends(get_planning_agent_service),
+):
+    return svc.generate_plan(plan_id)
 
 
 @router.patch("/{plan_id}/tasks/{task_id}", response_model=StudyTaskRead)

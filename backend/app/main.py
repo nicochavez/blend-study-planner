@@ -1,5 +1,10 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+# Load variables from .env into the process environment before anything else
+# imports settings or instantiates SDK clients that read os.environ directly.
+load_dotenv()
 
 from .api.routers import auth, plans, users
 

@@ -138,6 +138,9 @@ export const api = {
   generateTasks: (planId: number) =>
     req<StudyTask[]>(`/plans/${planId}/generate-tasks`, { method: "POST" }),
 
+  agentPlan: (planId: number) =>
+    req<StudyTask[]>(`/plans/${planId}/agent-plan`, { method: "POST" }),
+
   toggleTask: (planId: number, taskId: number, completed: boolean) =>
     req<StudyTask>(`/plans/${planId}/tasks/${taskId}`, {
       method: "PATCH",

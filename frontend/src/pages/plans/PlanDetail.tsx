@@ -16,6 +16,7 @@ import {
   IconCircleCheck,
   IconClock,
   IconPlus,
+  IconRobot,
   IconSparkles,
   IconTarget,
 } from "@tabler/icons-react";
@@ -34,6 +35,17 @@ function formatDate(iso: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+// The agent endpoint can fail because it couldn't satisfy the plan's
+// constraints (422). Surface that distinctly from a generic AI/LLM failure so
+// the user knows to relax the goal or budget rather than just retry.
+function agentErrorMessage(error: unknown): string {
+  const raw = error instanceof Error ? error.message : "";
+  if (raw.includes("satisfy") || raw.includes("constraint")) {
+    return "The agent couldn't fit a realistic plan within this goal's hours budget. Try widening the target date or weekly hours.";
+  }
+  return "The planning agent couldn't build a plan right now. Please try again.";
 }
 
 export default function PlanDetail() {
@@ -78,6 +90,16 @@ export default function PlanDetail() {
       qc.invalidateQueries({ queryKey: ["taskStats"] });
     },
   });
+
+  const agentPlan = useMutation({
+    mutationFn: () => api.agentPlan(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tasks", id] });
+      qc.invalidateQueries({ queryKey: ["taskStats"] });
+    },
+  });
+
+  const aiBusy = generateTasks.isPending || agentPlan.isPending;
 
   const completedCount = tasks.filter((t) => t.completed).length;
   const totalCount = tasks.length;
@@ -185,9 +207,21 @@ export default function PlanDetail() {
                 size="xs"
                 variant="light"
                 loading={generateTasks.isPending}
+                disabled={aiBusy}
                 onClick={() => generateTasks.mutate()}
               >
                 Generate with AI
+              </Button>
+              <Button
+                leftSection={<IconRobot size={13} />}
+                color="grape"
+                size="xs"
+                variant="light"
+                loading={agentPlan.isPending}
+                disabled={aiBusy}
+                onClick={() => agentPlan.mutate()}
+              >
+                Plan with agent
               </Button>
               <Button
                 leftSection={<IconPlus size={13} />}
@@ -211,6 +245,32 @@ export default function PlanDetail() {
               onClose={() => generateTasks.reset()}
             >
               Couldn't generate tasks right now. Please try again.
+            </Alert>
+          )}
+
+          {agentPlan.isError && (
+            <Alert
+              icon={<IconAlertCircle size={16} />}
+              color="red"
+              variant="light"
+              mb="md"
+              withCloseButton
+              onClose={() => agentPlan.reset()}
+            >
+              {agentErrorMessage(agentPlan.error)}
+            </Alert>
+          )}
+
+          {agentPlan.isPending && (
+            <Alert
+              icon={<Loader size={14} color="grape" />}
+              color="grape"
+              variant="light"
+              mb="md"
+            >
+              The planning agent is breaking your goal into subtopics, drafting
+              tasks, and checking them against your hours budget. This can take a
+              minute.
             </Alert>
           )}
 
@@ -238,16 +298,30 @@ export default function PlanDetail() {
               <Text className={styles.emptyText}>
                 No tasks yet. Break your goal into actionable steps.
               </Text>
-              <Button
-                leftSection={<IconSparkles size={14} />}
-                color="cyan"
-                size="xs"
-                variant="light"
-                loading={generateTasks.isPending}
-                onClick={() => generateTasks.mutate()}
-              >
-                Generate tasks with AI
-              </Button>
+              <Group gap="sm">
+                <Button
+                  leftSection={<IconSparkles size={14} />}
+                  color="cyan"
+                  size="xs"
+                  variant="light"
+                  loading={generateTasks.isPending}
+                  disabled={aiBusy}
+                  onClick={() => generateTasks.mutate()}
+                >
+                  Generate tasks with AI
+                </Button>
+                <Button
+                  leftSection={<IconRobot size={14} />}
+                  color="grape"
+                  size="xs"
+                  variant="light"
+                  loading={agentPlan.isPending}
+                  disabled={aiBusy}
+                  onClick={() => agentPlan.mutate()}
+                >
+                  Plan with agent
+                </Button>
+              </Group>
             </div>
           ) : (
             <div className={styles.taskList}>
