@@ -22,6 +22,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, type StudyTask } from "../../api/client";
+import ChatPanel from "../../components/chat/ChatPanel";
+import DocumentsPanel from "../../components/document/DocumentsPanel";
 import AddTaskModal from "../../components/task/AddTaskModal";
 import TaskItem from "../../components/task/TaskItem";
 import styles from "./PlanDetail.module.css";
@@ -261,6 +263,10 @@ export default function PlanDetail() {
             </div>
           )}
         </div>
+
+        <DocumentsPanel planId={id} />
+
+        <ChatPanel planId={id} />
       </main>
 
       <AddTaskModal opened={addTaskOpened} onClose={closeAddTask} planId={id} />

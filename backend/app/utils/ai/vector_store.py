@@ -52,3 +52,17 @@ def similarity_search(plan_id: int, query: str, k: int = 4) -> list[Document]:
     if store is None:
         return []
     return store.similarity_search(query, k=k)
+
+
+def similarity_search_with_score(
+    plan_id: int, query: str, k: int = 4
+) -> list[tuple[Document, float]]:
+    """Like ``similarity_search`` but also returns FAISS L2 distances.
+
+    Lower scores mean a closer match. Returns [] if the plan has no index yet,
+    letting callers distinguish "no documents" from "documents but no match".
+    """
+    store = load_index(plan_id)
+    if store is None:
+        return []
+    return store.similarity_search_with_score(query, k=k)

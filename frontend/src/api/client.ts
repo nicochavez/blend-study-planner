@@ -63,6 +63,27 @@ export type AuthResponse = {
   token_type: string;
   user: User;
 };
+export type StudyDocument = {
+  id: number;
+  plan_id: number;
+  filename: string;
+  content_type: string;
+  size_bytes: number;
+  num_chunks: number;
+  status: "processing" | "indexed" | "failed";
+  created_at: string;
+};
+export type ChatSource = {
+  document_id: number;
+  filename: string;
+  page: number;
+  snippet: string;
+};
+export type ChatResponse = {
+  answer: string;
+  sources: ChatSource[];
+  grounded: boolean;
+};
 
 export const api = {
   register: (name: string, password: string) =>
@@ -121,5 +142,32 @@ export const api = {
     req<StudyTask>(`/plans/${planId}/tasks/${taskId}`, {
       method: "PATCH",
       body: JSON.stringify({ completed }),
+    }),
+
+  getDocuments: (planId: number) =>
+    req<StudyDocument[]>(`/plans/${planId}/documents`),
+
+  uploadDocument: async (planId: number, file: File) => {
+    const token = getToken();
+    // Multipart upload: let the browser set the Content-Type boundary, so we
+    // bypass the JSON `req` helper here.
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(`${BASE}/plans/${planId}/documents`, {
+      method: "POST",
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: form,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json() as Promise<StudyDocument>;
+  },
+
+  chat: (planId: number, question: string, conversationId?: string) =>
+    req<ChatResponse>(`/plans/${planId}/chat`, {
+      method: "POST",
+      body: JSON.stringify({
+        question,
+        conversation_id: conversationId ?? null,
+      }),
     }),
 };

@@ -1,11 +1,16 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 
+from ...schemas.study_document import ChatRequest, ChatResponse, StudyDocumentRead
 from ...schemas.study_plan import StudyPlanCreate, StudyPlanRead, StudyPlanUpdate
 from ...schemas.study_task import StudyTaskCreate, StudyTaskRead, StudyTaskUpdate
+from ...services.chat_service import ChatService
+from ...services.document_service import DocumentService
 from ...services.plan_service import PlanService
 from ...services.task_generation_service import TaskGenerationService
 from ...services.task_service import TaskService
 from ..deps import (
+    get_chat_service,
+    get_document_service,
     get_plan_service,
     get_task_generation_service,
     get_task_service,
@@ -65,3 +70,32 @@ def update_task(
     svc: TaskService = Depends(get_task_service),
 ):
     return svc.update_task(plan_id, task_id, data)
+
+
+@router.post(
+    "/{plan_id}/documents",
+    response_model=StudyDocumentRead,
+    status_code=201,
+)
+def upload_document(
+    plan_id: int,
+    file: UploadFile = File(...),
+    svc: DocumentService = Depends(get_document_service),
+):
+    return svc.upload_document(plan_id, file)
+
+
+@router.get("/{plan_id}/documents", response_model=list[StudyDocumentRead])
+def list_documents(
+    plan_id: int, svc: DocumentService = Depends(get_document_service)
+):
+    return svc.list_documents(plan_id)
+
+
+@router.post("/{plan_id}/chat", response_model=ChatResponse)
+def chat(
+    plan_id: int,
+    data: ChatRequest,
+    svc: ChatService = Depends(get_chat_service),
+):
+    return svc.ask(plan_id, data)
